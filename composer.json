@@ -1,0 +1,8 @@
+{
+  "autoload": {
+    "psr-4": {"TC\\Lendinvest\\": "src/"}
+  },
+    "require": {
+        "phpunit/phpunit": "^6.5"
+    }
+}
