@@ -2,21 +2,15 @@
 
 namespace TC\Lendinvest\Loan\Tranche;
 
-use TC\Lendinvest\Investor\Investor;
-use TC\Lendinvest\Loan\Investment;
-use TC\Lendinvest\Loan\Loan;
+use TC\Lendinvest\Investor\InvestorInterface;
+use TC\Lendinvest\Loan\LoanInterface;
 
 interface TrancheInterface
 {
     /**
-     * @param Loan $Loan
+     * @param LoanInterface $Loan
      */
-    public function setLoad(Loan $Loan);
-
-    /**
-     * @return Loan|null
-     */
-    public function getLoad();
+    public function setLoad(LoanInterface $Loan);
 
     /**
      * @return string
@@ -34,14 +28,15 @@ interface TrancheInterface
     public function getPercentage(): float;
 
     /**
-     * @return Investment[]
+     * @return \TC\Lendinvest\Loan\Investment\InvestmentInterface[]
      */
     public function getInvestments(): array;
 
     /**
-     * @param Investor $Investor
-     * @param $date $amount
+     * @param InvestorInterface $Investor
+     * @param string $date
+     * @param float $amount
      * @return bool
      */
-    public function madeInvestment(Investor $Investor, string $date, float $amount): bool;
+    public function makeInvestment(InvestorInterface $Investor, string $date, float $amount): bool;
 }

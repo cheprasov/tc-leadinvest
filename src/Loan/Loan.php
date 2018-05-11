@@ -3,22 +3,24 @@
 namespace TC\Lendinvest\Loan;
 
 use TC\Lendinvest\Exception\DuplicateTrancheForLoadException;
+use TC\Lendinvest\Exception\IncorrectDateException;
 use TC\Lendinvest\Loan\Tranche\TrancheInterface;
+use TC\Lendinvest\Utils\Date;
 
-class Loan {
-
+class Loan implements LoanInterface
+{
     /**
-     * @var string|null
+     * @var string
      */
-    protected $begDate;
+    protected $dateBeg;
 
     /**
-     * @var string|null
+     * @var string
      */
-    protected $endDate;
+    protected $dateEnd;
 
     /**
-     * @var array
+     * @var TrancheInterface[]
      */
     protected $tranches = [];
 
@@ -26,17 +28,17 @@ class Loan {
      * @param string $begDate
      * @param string $endDate
      */
-    public function __construct(string $begDate, string $endDate)
+    public function __construct(string $dateBeg, string $dateEnd)
     {
-        if ($begDate >= $endDate) {
+        if (!Date::isCorrectDate($dateBeg) || !Date::isCorrectDate($dateEnd) || $dateBeg >= $dateEnd) {
+            throw new IncorrectDateException();
         }
-        $this->begDate = $begDate;
-        $this->endDate = $endDate;
+        $this->dateBeg = $dateBeg;
+        $this->dateEnd = $dateEnd;
     }
 
     /**
-     * @param TrancheInterface $Tranche
-     * @return bool
+     * @inheritdoc
      * @throws DuplicateTrancheForLoadException
      */
     public function addTranche(TrancheInterface $Tranche): bool
@@ -50,9 +52,27 @@ class Loan {
         return true;
     }
 
-    public function getTrances(): array
+    /**
+     * @return TrancheInterface[]
+     */
+    public function getTranches(): array
     {
         return $this->tranches;
     }
 
+    /**
+     * @inheritdoc
+     */
+    public function getDateBeg(): string
+    {
+        return $this->dateBeg;
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function getDateEnd(): string
+    {
+        return $this->dateEnd;
+    }
 }

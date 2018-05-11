@@ -2,14 +2,16 @@
 
 namespace TC\Lendinvest\Loan\Tranche;
 
+use TC\Lendinvest\Exception\Exception;
+use TC\Lendinvest\Exception\IncorrectDateException;
 use TC\Lendinvest\Exception\OutOfTrancheMaxAmountException;
-use TC\Lendinvest\Investor\Investor;
-use TC\Lendinvest\Loan\Investment;
-use TC\Lendinvest\Loan\Loan;
+use TC\Lendinvest\Investor\InvestorInterface;
+use TC\Lendinvest\Loan\Investment\Investment;
+use TC\Lendinvest\Loan\LoanInterface;
+use TC\Lendinvest\Utils\Date;
 
 class Tranche implements TrancheInterface
 {
-
     /**
      * @var string
      */
@@ -31,7 +33,7 @@ class Tranche implements TrancheInterface
     protected $allowedAmount;
 
     /**
-     * @var Loan|null
+     * @var LoanInterface|null
      */
     protected $Loan;
 
@@ -54,23 +56,27 @@ class Tranche implements TrancheInterface
     }
 
     /**
-     * @param Loan $Loan
+     * @inheritdoc
      */
-    public function setLoad(Loan $Loan)
+    public function setLoad(LoanInterface $Loan)
     {
         $this->Loan = $Loan;
     }
 
     /**
-     * @return Loan|null
+     * @return LoanInterface
+     * @throws Exception
      */
-    public function getLoad()
+    protected function getLoad(): LoanInterface
     {
-        $this->Loan;
+        if (!$this->Loan) {
+            throw new Exception('Loan should be defined');
+        }
+        return $this->Loan;
     }
 
     /**
-     * @return string
+     * @inheritdoc
      */
     public function getName(): string
     {
@@ -78,7 +84,7 @@ class Tranche implements TrancheInterface
     }
 
     /**
-     * @return float
+     * @inheritdoc
      */
     public function getMaxAmount(): float
     {
@@ -86,7 +92,7 @@ class Tranche implements TrancheInterface
     }
 
     /**
-     * @return float
+     * @inheritdoc
      */
     public function getPercentage(): float
     {
@@ -94,7 +100,7 @@ class Tranche implements TrancheInterface
     }
 
     /**
-     * @return Investment[]
+     * @inheritdoc
      */
     public function getInvestments(): array
     {
@@ -102,19 +108,26 @@ class Tranche implements TrancheInterface
     }
 
     /**
-     * @param Investor $Investor
-     * @param string $date
-     * @param float $amount
-     * @return bool
+     * @inheritdoc
+     * @throws OutOfTrancheMaxAmountException
+     * @throws IncorrectDateException
      */
-    public function madeInvestment(Investor $Investor, string $date, float $amount): bool
+    public function makeInvestment(InvestorInterface $Investor, string $date, float $amount): bool
     {
-        $Investor->incrementAmount(-$amount);
         if ($this->allowedAmount < $amount) {
             throw new OutOfTrancheMaxAmountException();
         }
+        if (!Date::isCorrectDate($date)) {
+            throw new IncorrectDateException();
+        }
+        $Loan = $this->getLoad();
+        if ($date < $Loan->getDateBeg() || $date >= $Loan->getDateEnd()) {
+            throw new IncorrectDateException(
+                "Investment date should be between {$Loan->getDateBeg()} and {$Loan->getDateEnd()}"
+            );
+        }
+        $this->investments[] = new Investment($Investor, $date, $amount);
         $this->allowedAmount -= $amount;
-        $Investment = new Investment($Investor, $date, $amount);
         return true;
     }
 }
